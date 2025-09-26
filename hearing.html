@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>LegalShark · Hearings</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="nav-loader.js"></script>
+  <style>
+    :root { --lf-bg:#0b0f19; --lf-surface:#111827; --lf-card:#0f172a; --lf-border:#1f2937; --lf-accent:#2563eb; --lf-primary:var(--lf-accent); --lf-radius:1rem; --lf-btn-shape:999px; --lf-density-y:.75rem; }
+    [data-bs-theme="dark"]{ --bs-body-bg:var(--lf-bg); --bs-body-color:#e5e7eb; --bs-border-color:var(--lf-border); --bs-card-bg:var(--lf-card); --bs-card-border-color:var(--lf-border); --bs-tertiary-bg:var(--lf-surface); }
+    .brand-badge{font-weight:700;color:var(--lf-primary)} .btn{border-radius:var(--lf-btn-shape)} .rounded-dna{border-radius:var(--lf-radius)!important}
+    .sidebar{width:280px;background:var(--bs-tertiary-bg);border-right:1px solid var(--bs-border-color);position:fixed;top:0;bottom:0;left:0;z-index:1030;overflow-y:auto}
+    .content-wrap{margin-left:280px} @media (max-width:991.98px){.sidebar{left:-100%;transition:left .2s ease}.sidebar.show{left:0}.content-wrap{margin-left:0}}
+    .brand-header{background:linear-gradient(135deg,rgba(var(--bs-primary-rgb),.22),rgba(var(--bs-primary-rgb),.10) 60%,transparent 100%),var(--bs-body-bg);
+      border-bottom:1px solid color-mix(in srgb,var(--lf-primary) 25%,var(--bs-border-color));backdrop-filter:saturate(120%) blur(6px)}
+    body.lf-theme-gradient{background:radial-gradient(1200px 600px at -10% -10%, rgba(var(--bs-primary-rgb),.18), transparent 60%),linear-gradient(180deg, rgba(var(--bs-primary-rgb),.08), transparent 300px),var(--bs-body-bg)}
+  </style>
+</head>
+<body class="lf-theme-gradient">
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar p-3">
+    <div class="d-flex align-items-center mb-3">
+      <i class="bi bi-scales me-2 text-primary"></i><span class="brand-badge">LegalShark</span>
+    </div>
+    <div class="mb-3"><input id="navSearch" type="search" class="form-control" placeholder="Search…"></div>
+    <small class="text-uppercase text-secondary">Navigation</small>
+    <div id="mainNav"></div>
+    <hr/><div class="d-grid gap-2"><button class="btn btn-outline-secondary" id="toggleTheme"><i class="bi bi-moon-stars me-2"></i>Toggle Dark</button></div>
+  </nav>
+
+  <!-- Header -->
+  <header class="content-wrap brand-header sticky-top">
+    <div class="container-fluid py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+          <span class="fw-semibold">Hearings</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <input id="fltClient" class="form-control" placeholder="Filter client…" style="max-width:220px">
+          <div class="input-group" style="max-width:320px">
+            <span class="input-group-text">From</span><input id="fltFrom" type="date" class="form-control">
+            <span class="input-group-text">to</span><input id="fltTo" type="date" class="form-control">
+          </div>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#hearingModal"><i class="bi bi-plus-lg"></i> New Hearing</button>
+          <button class="btn btn-outline-secondary" id="btnExport"><i class="bi bi-download"></i> Export</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="content-wrap">
+    <div class="container-fluid py-4">
+      <div class="card rounded-dna">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0" id="hearTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Time</th><th>Court</th><th>Type</th><th>Ticket #</th><th>Client</th><th>Status</th><th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="card-footer small text-secondary">Tip: Use “.ics” to add a hearing to your calendar.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- New Hearing Modal -->
+  <div class="modal fade" id="hearingModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Schedule Hearing</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label">Date</label><input id="hDate" type="date" class="form-control"/></div>
+          <div class="col-4"><label class="form-label">Time</label><input id="hTime" type="time" class="form-control" value="10:00"/></div>
+          <div class="col-4"><label class="form-label">Type</label>
+            <select id="hType" class="form-select"><option>First Appearance</option><option>Disclosure</option><option>Pretrial</option><option>Hearing</option></select>
+          </div>
+          <div class="col-6"><label class="form-label">Ticket #</label><input id="hTicket" list="ticketList" class="form-control"/><datalist id="ticketList"></datalist></div>
+          <div class="col-6"><label class="form-label">Client</label><input id="hClient" list="clientList" class="form-control"/><datalist id="clientList"></datalist></div>
+          <div class="col-8"><label class="form-label">Court</label><input id="hCourt" class="form-control" placeholder="Toronto, Brampton, ..."/></div>
+          <div class="col-4"><label class="form-label">Status</label>
+            <select id="hStatus" class="form-select"><option>Scheduled</option><option>Adjourned</option><option>Completed</option></select>
+          </div>
+          <div class="col-12"><label class="form-label">Notes</label><input id="hNotes" class="form-control" placeholder="Optional"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="btnSaveHearing">Save</button></div>
+    </div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar + Theme
+    document.getElementById('sidebarToggle')?.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('show'));
+    document.getElementById('toggleTheme')?.addEventListener('click',()=>{const h=document.documentElement;const cur=h.getAttribute('data-bs-theme')||'light';const nxt=cur==='dark'?'light':'dark';h.setAttribute('data-bs-theme',nxt);localStorage.setItem('ls_theme',nxt);});
+    (function(){const saved=localStorage.getItem('ls_theme'); if(saved) document.documentElement.setAttribute('data-bs-theme', saved);})();
+
+    // Data layer
+    const K={clients:'ls_clients',tickets:'ls_tickets',hearings:'ls_hearings'};
+    const _get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)|| (f!==undefined?JSON.stringify(f):'null'));}catch{return f;}};
+    const _set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+    const nextId=a=>(a.length?Math.max(...a.map(x=>x.id||0)):0)+1;
+
+    function seed(){
+      if(!_get(K.clients)){_set(K.clients,[{firstName:'John',lastName:'Carter'},{firstName:'Emily',lastName:'Johnson'}]);}
+      if(!_get(K.tickets)){_set(K.tickets,[{number:'HTA-2025-010',client:'John Carter'},{number:'HTA-2025-011',client:'Emily Johnson'}]);}
+      if(!_get(K.hearings)){
+        _set(K.hearings,[
+          {id:1,date:new Date(Date.now()+86400000).toISOString().slice(0,10),time:'10:00',court:'Toronto',type:'First Appearance',ticket:'HTA-2025-010',client:'John Carter',status:'Scheduled',notes:''},
+          {id:2,date:new Date(Date.now()+172800000).toISOString().slice(0,10),time:'09:30',court:'Mississauga',type:'Disclosure',ticket:'HTA-2025-011',client:'Emily Johnson',status:'Scheduled',notes:'Disclosure follow-up'}
+        ]);
+      }
+    } seed();
+
+    const Clients={all(){return _get(K.clients,[])||[];}};
+    const Tickets={all(){return _get(K.tickets,[])||[];}};
+    const Hearings={
+      all(){return _get(K.hearings,[])||[];},
+      add(h){const a=Hearings.all(); h.id=nextId(a); a.push(h); _set(K.hearings,a); return h;},
+      setStatus(id,st){const a=Hearings.all(); const r=a.find(x=>x.id==id); if(r){r.status=st; _set(K.hearings,a);} }
+    };
+
+    // Populate datalists
+    document.getElementById('clientList').innerHTML = Clients.all().map(c=>`<option value="${(c.firstName||'')+' '+(c.lastName||'')}">`).join('');
+    document.getElementById('ticketList').innerHTML = Tickets.all().map(t=>`<option value="${t.number}">`).join('');
+
+    function render(){
+      const tbody=document.querySelector('#hearTable tbody');
+      const from=fltFrom.value, to=fltTo.value, term=(fltClient.value||'').toLowerCase();
+      const rows = Hearings.all().filter(h=>(!from||h.date>=from)&&(!to||h.date<=to)&&(!term||(h.client||'').toLowerCase().includes(term)))
+        .sort((a,b)=> (a.date+b.time).localeCompare(b.date+b.time))
+        .map(h=>`<tr>
+          <td>${h.date}</td><td>${h.time||''}</td><td>${h.court||''}</td><td>${h.type||''}</td>
+          <td><a href="./tickets.html?client=${encodeURIComponent(h.client||'')}">${h.ticket||''}</a></td>
+          <td><a href="./tickets.html?client=${encodeURIComponent(h.client||'')}">${h.client||''}</a></td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">${h.status||'Scheduled'}</button>
+              <ul class="dropdown-menu">
+                ${['Scheduled','Adjourned','Completed','Cancelled'].map(s=>`<li><a class="dropdown-item st" data-id="${h.id}" data-st="${s}" href="#">${s}</a></li>`).join('')}
+              </ul>
+            </div>
+          </td>
+          <td class="text-end">
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary ics" data-id="${h.id}">.ics</button>
+            </div>
+          </td>
+        </tr>`).join('');
+      tbody.innerHTML = rows || `<tr><td colspan="8" class="text-center text-secondary py-4">No hearings yet.</td></tr>`;
+    }
+    ['input','change'].forEach(ev=>fltClient.addEventListener(ev,render));
+    ['change'].forEach(ev=>[fltFrom,fltTo].forEach(x=>x.addEventListener(ev,render)));
+
+    // Save
+    document.getElementById('btnSaveHearing').addEventListener('click',()=>{
+      Hearings.add({date:hDate.value, time:hTime.value, court:hCourt.value.trim(), type:hType.value, ticket:hTicket.value.trim(), client:hClient.value.trim(), status:hStatus.value, notes:hNotes.value.trim()});
+      bootstrap.Modal.getInstance(document.getElementById('hearingModal'))?.hide(); render();
+    });
+
+    // Status + ICS
+    document.getElementById('hearTable').addEventListener('click',(e)=>{
+      const st = e.target.closest('.st'); if(st){ e.preventDefault(); Hearings.setStatus(st.dataset.id, st.dataset.st); render(); return; }
+      const ics = e.target.closest('.ics'); if(ics){
+        const h = Hearings.all().find(x=>x.id==ics.dataset.id); if(!h) return;
+        const dt = (h.date||'')+'T'+(h.time||'10:00').replace(':','')+'00';
+        const icsText = [
+          'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LegalShark//Hearings//EN','BEGIN:VEVENT',
+          'UID:ls-'+h.id+'@legalshark','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z',
+          'DTSTART:'+h.date.replace(/-/g,'')+'T'+(h.time||'10:00').replace(':','')+'00',
+          'SUMMARY:'+['Hearing',h.type,h.ticket].filter(Boolean).join(' - '),
+          'LOCATION:'+ (h.court||''), 'DESCRIPTION:'+(h.client||''),
+          'END:VEVENT','END:VCALENDAR'
+        ].join('\r\n');
+        const blob=new Blob([icsText],{type:'text/calendar'}); const url=URL.createObjectURL(blob);
+        const a=Object.assign(document.createElement('a'),{href:url,download:`hearing-${h.ticket||'event'}.ics`}); document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      }
+    });
+
+    // Export CSV
+    document.getElementById('btnExport').addEventListener('click',()=>{
+      const rows=[['Date','Time','Court','Type','Ticket','Client','Status','Notes']].concat(Hearings.all().map(h=>[h.date,h.time||'',h.court||'',h.type||'',h.ticket||'',h.client||'',h.status||'',h.notes||'']));
+      const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); const a=Object.assign(document.createElement('a'),{href:url,download:'hearings.csv'}); document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>

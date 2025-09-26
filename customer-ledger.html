@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LegalShark · Customer Ledger</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="nav-loader.js"></script>
+  <style>
+    :root {
+      --lf-bg:#0b0f19; --lf-surface:#111827; --lf-card:#0f172a; --lf-border:#1f2937;
+      --lf-accent:#2563eb; --lf-primary:var(--lf-accent);
+      --lf-radius:1rem; --lf-density-y:.75rem; --lf-btn-shape:999px;
+    }
+    [data-bs-theme="dark"]{
+      --bs-body-bg:var(--lf-bg); --bs-body-color:#e5e7eb; --bs-border-color:var(--lf-border);
+      --bs-card-bg:var(--lf-card); --bs-card-border-color:var(--lf-border); --bs-tertiary-bg:var(--lf-surface);
+    }
+    .brand-badge{font-weight:700;letter-spacing:.5px;color:var(--lf-primary)}
+    .sidebar{width:280px;background:var(--bs-tertiary-bg);border-right:1px solid var(--bs-border-color);
+      position:fixed;top:0;bottom:0;left:0;z-index:1030;overflow-y:auto}
+    .content-wrap{margin-left:280px}
+    @media (max-width:991.98px){.sidebar{left:-100%;transition:left .2s ease}.sidebar.show{left:0}.content-wrap{margin-left:0}}
+    .btn{border-radius:var(--lf-btn-shape)} .rounded-dna{border-radius:var(--lf-radius)!important}
+    .dense-y .btn,.dense-y .nav-link,.dense-y .form-control,.dense-y .input-group-text,.dense-y .list-group-item,.dense-y .dropdown-item{padding-top:var(--lf-density-y);padding-bottom:var(--lf-density-y)}
+    body.lf-theme-gradient{background:radial-gradient(1200px 600px at -10% -10%, rgba(var(--bs-primary-rgb),.18), transparent 60%),linear-gradient(180deg, rgba(var(--bs-primary-rgb),.08), transparent 300px),var(--bs-body-bg)}
+    .brand-header{background:linear-gradient(135deg, rgba(var(--bs-primary-rgb),.22), rgba(var(--bs-primary-rgb),.10) 60%, transparent 100%), var(--bs-body-bg);
+      border-bottom:1px solid color-mix(in srgb, var(--lf-primary) 25%, var(--bs-border-color)); backdrop-filter:saturate(120%) blur(6px)}
+    .table thead th{font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+  </style>
+</head>
+<body class="lf-theme-gradient">
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar p-3">
+    <div class="d-flex align-items-center mb-3">
+      <i class="bi bi-scales me-2 text-primary"></i><span class="brand-badge">LegalShark</span>
+    </div>
+    <div class="mb-3"><input type="search" class="form-control" placeholder="Search…"/></div>
+    <small class="text-uppercase text-secondary">Navigation</small>
+    <div id="mainNav"></div>
+    <hr/>
+    <div class="d-grid gap-2">
+      <button class="btn btn-outline-secondary" id="toggleTheme"><i class="bi bi-moon-stars me-2"></i>Toggle Dark</button>
+    </div>
+  </nav>
+
+  <!-- Topbar -->
+  <header class="content-wrap brand-header sticky-top">
+    <div class="container-fluid py-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+          <span class="fw-semibold" id="title">Customer Ledger</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <input id="fltClient" class="form-control" placeholder="Filter by client…" style="max-width:220px"/>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal"><i class="bi bi-receipt"></i> New Invoice</button>
+          <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#paymentModal"><i class="bi bi-cash"></i> Record Payment</button>
+          <button class="btn btn-outline-secondary" id="btnExportCsv"><i class="bi bi-download"></i> Export</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="content-wrap">
+    <div class="container-fluid py-4">
+      <div class="row g-3">
+        <div class="col-lg-7">
+          <div class="card rounded-dna">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <strong>Invoices</strong>
+              <span class="small text-secondary">Total A/R: <span id="arTotal">$0.00</span></span>
+            </div>
+            <div class="table-responsive">
+              <table class="table align-middle mb-0" id="invTable">
+                <thead><tr><th>#</th><th>Date</th><th>Client</th><th>Memo</th><th class="text-end">Amount</th><th class="text-end">Paid</th><th class="text-end">Balance</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card rounded-dna">
+            <div class="card-header"><strong>Payments</strong></div>
+            <div class="table-responsive">
+              <table class="table align-middle mb-0" id="payTable">
+                <thead><tr><th>Date</th><th>Client</th><th>Memo</th><th class="text-end">Amount</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="alert alert-info mt-3 rounded-dna small">
+            Tip: When you “Apply Retainer” from Trust, we add a Payment here and reduce the oldest open invoice automatically.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- New Invoice Modal -->
+  <div class="modal fade" id="invoiceModal" tabindex="-1"><div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">New Invoice</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label">Date</label><input id="iDate" type="date" class="form-control"/></div>
+          <div class="col-8"><label class="form-label">Client</label><input id="iClient" class="form-control"/></div>
+          <div class="col-12"><label class="form-label">Memo</label><input id="iMemo" class="form-control"/></div>
+          <div class="col-6"><label class="form-label">Amount</label><input id="iAmount" type="number" step="0.01" class="form-control"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="btnSaveInvoice">Save</button></div>
+    </div>
+  </div></div>
+
+  <!-- Payment Modal -->
+  <div class="modal fade" id="paymentModal" tabindex="-1"><div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Record Payment</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label">Date</label><input id="pDate" type="date" class="form-control"/></div>
+          <div class="col-8"><label class="form-label">Client</label><input id="pClient" class="form-control"/></div>
+          <div class="col-12"><label class="form-label">Memo</label><input id="pMemo" class="form-control" placeholder="Payment, Retainer applied…"/></div>
+          <div class="col-6"><label class="form-label">Amount</label><input id="pAmount" type="number" step="0.01" class="form-control"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="btnSavePayment">Save</button></div>
+    </div>
+  </div></div>
+
+  <!-- Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+    <div id="toaster" class="toast align-items-center text-bg-success border-0" role="alert">
+      <div class="d-flex"><div class="toast-body">Saved.</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar & Theme
+    document.getElementById('sidebarToggle')?.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('show'));
+    document.getElementById('toggleTheme')?.addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-bs-theme',h.getAttribute('data-bs-theme')==='dark'?'light':'dark');});
+
+    // === Minimal LocalStorage data layer (same keys as Trust page) ===
+    const K={clients:'ls_clients',tickets:'ls_tickets',trust:'ls_trust_entries',invoices:'ls_inv',payments:'ls_pay'};
+    const _get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)|| (f!==undefined?JSON.stringify(f):'null'));}catch{return f;}};
+    const _set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+    const today=()=>new Date().toISOString().slice(0,10);
+    const money=n=>Number(n||0).toLocaleString(undefined,{style:'currency',currency:'CAD'});
+    function seed(){
+      if(!_get(K.clients)){_set(K.clients,[{firstName:'John',lastName:'Carter'},{firstName:'Emily',lastName:'Johnson'}]);}
+      if(!_get(K.invoices)){_set(K.invoices,[{no:'INV-1001',date:today(),client:'John Carter',memo:'HTA retainer',amount:250,paid:100},{no:'INV-1002',date:today(),client:'Emily Johnson',memo:'Filing fees',amount:150,paid:0}]);}
+      if(!_get(K.payments)){_set(K.payments,[{date:today(),client:'John Carter',memo:'Paid on INV-1001',amount:100}]);}
+    } seed();
+
+    const Invoices={all(){return _get(K.invoices,[])||[];},setAll(a){_set(K.invoices,a);},add(inv){const arr=Invoices.all();inv.no=inv.no||('INV-'+(1000+arr.length+1));inv.date=inv.date||today();inv.paid=inv.paid||0;arr.push(inv);Invoices.setAll(arr);return inv;},applyToOldest(client,amount){let left=Number(amount||0);const arr=Invoices.all();for(const inv of arr.filter(i=>i.client===client)){const bal=Number(inv.amount)-Number(inv.paid||0);if(bal<=0)continue;const take=Math.min(bal,left);inv.paid=Number(inv.paid||0)+take;left-=take;if(left<=0)break;}Invoices.setAll(arr);}};
+    const Payments={all(){return _get(K.payments,[])||[];},setAll(a){_set(K.payments,a);},add(p){const arr=Payments.all();arr.push(p);Payments.setAll(arr);return p;}};
+
+    function render(){
+      const term=(document.getElementById('fltClient').value||'').toLowerCase();
+      const inv=Invoices.all().filter(r=>!term || (r.client||'').toLowerCase().includes(term));
+      const pay=Payments.all().filter(r=>!term || (r.client||'').toLowerCase().includes(term));
+      const tbodyInv=document.querySelector('#invTable tbody');
+      const tbodyPay=document.querySelector('#payTable tbody');
+
+      let ar=0;
+      tbodyInv.innerHTML = inv.map(r=>{
+        const bal=Number(r.amount)-Number(r.paid||0); ar+=bal;
+        return `<tr><td>${r.no}</td><td>${r.date}</td><td><a href="./customer-ledger.html?client=${encodeURIComponent(r.client)}">${r.client}</a></td><td>${r.memo||''}</td><td class="text-end">${money(r.amount)}</td><td class="text-end">${money(r.paid||0)}</td><td class="text-end ${bal>0?'text-danger':''}">${money(bal)}</td></tr>`;
+      }).join('') || `<tr><td colspan="7" class="text-center text-secondary py-4">No invoices yet.</td></tr>`;
+      tbodyPay.innerHTML = pay.map(r=>`<tr><td>${r.date}</td><td><a href="./customer-ledger.html?client=${encodeURIComponent(r.client)}">${r.client}</a></td><td>${r.memo||''}</td><td class="text-end">${money(r.amount)}</td></tr>`).join('') || `<tr><td colspan="4" class="text-center text-secondary py-4">No payments yet.</td></tr>`;
+      document.getElementById('arTotal').textContent = money(ar);
+    }
+
+    document.getElementById('fltClient').addEventListener('input',render);
+
+    // Save invoice
+    document.getElementById('btnSaveInvoice').addEventListener('click',()=>{
+      Invoices.add({date:iDate.value||today(), client:iClient.value.trim()||'Unknown', memo:iMemo.value.trim(), amount:Number(iAmount.value||0)});
+      bootstrap.Modal.getInstance(document.getElementById('invoiceModal'))?.hide(); new bootstrap.Toast(document.getElementById('toaster')).show(); render();
+    });
+
+    // Save payment (auto-apply to oldest)
+    document.getElementById('btnSavePayment').addEventListener('click',()=>{
+      const amt=Number(pAmount.value||0); const client=(pClient.value||'Unknown').trim();
+      Payments.add({date:pDate.value||today(), client, memo:pMemo.value.trim(), amount:amt});
+      Invoices.applyToOldest(client, amt);
+      bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide(); new bootstrap.Toast(document.getElementById('toaster')).show(); render();
+    });
+
+    (function initFromQuery(){const q=new URL(location.href).searchParams.get('client'); if(q){document.getElementById('fltClient').value=q; document.getElementById('title').textContent='Customer Ledger — '+q;}})();
+    render();
+  </script>
+</body>
+</html>

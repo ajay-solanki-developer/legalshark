@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LegalShark · Trust Ledger</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="nav-loader.js"></script>
+  <style>
+    :root {
+      --lf-bg: #0b0f19; --lf-surface: #111827; --lf-card: #0f172a; --lf-border: #1f2937;
+      --lf-accent: #2563eb; --lf-accent-2: #16a34a; --lf-warn: #f59e0b; --lf-danger: #ef4444;
+      --lf-text: #0f172a; --lf-muted: #6b7280; --lf-paper: #ffffff;
+      --lf-radius: 1rem; --lf-density-y: 0.75rem; --lf-btn-shape: 999px; --lf-primary: var(--lf-accent);
+    }
+    [data-bs-theme="dark"] {
+      --bs-body-bg: var(--lf-bg); --bs-body-color:#e5e7eb; --bs-border-color:var(--lf-border);
+      --bs-card-bg:var(--lf-card); --bs-card-border-color:var(--lf-border); --bs-tertiary-bg:var(--lf-surface);
+    }
+    .brand-badge{font-weight:700;letter-spacing:.5px;color:var(--lf-primary)}
+    .sidebar{width:280px;background:var(--bs-tertiary-bg);border-right:1px solid var(--bs-border-color);
+      position:fixed;top:0;bottom:0;left:0;z-index:1030;overflow-y:auto}
+    .content-wrap{margin-left:280px}
+    @media (max-width:991.98px){.sidebar{left:-100%;transition:left .2s ease}.sidebar.show{left:0}.content-wrap{margin-left:0}}
+    .menu-filled .sidebar a:hover{background:rgba(37,99,235,.08);border-radius:.6rem}
+    .menu-outline .sidebar a{border:1px solid transparent}.menu-outline .sidebar a:hover{border-color:var(--bs-border-color);border-radius:.6rem}
+    .btn{border-radius:var(--lf-btn-shape)}
+    .rounded-dna{border-radius:var(--lf-radius)!important}
+    .dense-y .btn,.dense-y .nav-link,.dense-y .form-control,.dense-y .input-group-text,.dense-y .list-group-item,.dense-y .dropdown-item{padding-top:var(--lf-density-y);padding-bottom:var(--lf-density-y)}
+    .brand-header{background:linear-gradient(135deg,rgba(var(--bs-primary-rgb),.22),rgba(var(--bs-primary-rgb),.10) 60%,transparent 100%),var(--bs-body-bg);
+      border-bottom:1px solid color-mix(in srgb,var(--lf-primary) 25%,var(--bs-border-color));backdrop-filter:saturate(120%) blur(6px)}
+    body.lf-theme-gradient{background:radial-gradient(1200px 600px at -10% -10%, rgba(var(--bs-primary-rgb),.18), transparent 60%),linear-gradient(180deg, rgba(var(--bs-primary-rgb),.08), transparent 300px),var(--bs-body-bg)}
+    .table thead th{font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+  </style>
+</head>
+<body class="lf-theme-gradient">
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar p-3">
+    <div class="d-flex align-items-center mb-3">
+      <i class="bi bi-scales me-2 text-primary"></i><span class="brand-badge">LegalShark</span>
+    </div>
+    <div class="mb-3">
+      <input id="navSearch" type="search" class="form-control" placeholder="Search…"/>
+    </div>
+    <small class="text-uppercase text-secondary">Navigation</small>
+    <div id="mainNav"></div>
+    <hr/>
+    <div class="d-grid gap-2">
+      <button class="btn btn-outline-secondary" id="toggleTheme"><i class="bi bi-moon-stars me-2"></i>Toggle Dark</button>
+    </div>
+  </nav>
+
+  <!-- Topbar -->
+  <header class="content-wrap brand-header sticky-top">
+    <div class="container-fluid py-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+          <span class="fw-semibold">Trust Ledger</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <input id="fltClient" class="form-control" placeholder="Filter by client…" style="max-width:220px"/>
+          <div class="input-group" style="max-width:280px">
+            <span class="input-group-text">From</span><input id="fltFrom" type="date" class="form-control">
+            <span class="input-group-text">to</span><input id="fltTo" type="date" class="form-control">
+          </div>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entryModal"><i class="bi bi-plus-lg"></i> New Entry</button>
+          <button class="btn btn-outline-secondary" id="btnExportCsv"><i class="bi bi-download"></i> Export</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="content-wrap">
+    <div class="container-fluid py-4">
+      <div class="alert alert-info rounded-dna mb-3">Trust Balance: <strong id="trustBal">$0.00</strong></div>
+      <div class="card rounded-dna">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0" id="trustTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Client</th><th>Memo</th>
+                <th class="text-end">Receipt</th><th class="text-end">Disbursement</th><th class="text-end">Running</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="card-footer small text-secondary">Use “Apply to Invoice” to move retainers into Customer Ledger, or “Transfer” to Operating.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- New Entry Modal -->
+  <div class="modal fade" id="entryModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">New Trust Entry</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label">Date</label><input id="fDate" type="date" class="form-control"/></div>
+          <div class="col-6"><label class="form-label">Client</label><input id="fClient" class="form-control" list="clientsList"/><datalist id="clientsList"></datalist></div>
+          <div class="col-12"><label class="form-label">Memo</label><input id="fMemo" class="form-control" placeholder="Retainer, filing fee…"/></div>
+          <div class="col-6"><label class="form-label">Receipt (+)</label><input id="fCredit" type="number" step="0.01" class="form-control"/></div>
+          <div class="col-6"><label class="form-label">Disbursement (-)</label><input id="fDebit" type="number" step="0.01" class="form-control"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="btnSave">Save</button></div>
+    </div></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+    <div id="toaster" class="toast align-items-center text-bg-success border-0" role="alert">
+      <div class="d-flex"><div class="toast-body">Saved.</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar & Theme
+    document.getElementById('sidebarToggle')?.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('show'));
+    document.getElementById('toggleTheme')?.addEventListener('click',()=>{const h=document.documentElement;h.setAttribute('data-bs-theme',h.getAttribute('data-bs-theme')==='dark'?'light':'dark');});
+
+    // === Minimal LocalStorage data layer (shared keys) ===
+    const K={clients:'ls_clients',tickets:'ls_tickets',trust:'ls_trust_entries',invoices:'ls_inv',payments:'ls_pay'};
+    const _get=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)|| (f!==undefined?JSON.stringify(f):'null'));}catch{return f;}};
+    const _set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+    const today=()=>new Date().toISOString().slice(0,10);
+    const money=n=>Number(n||0).toLocaleString(undefined,{style:'currency',currency:'CAD'});
+    function seed(){
+      if(!_get(K.clients)){_set(K.clients,[{firstName:'John',lastName:'Carter'},{firstName:'Emily',lastName:'Johnson'}]);}
+      if(!_get(K.trust)){_set(K.trust,[{date:today(),client:'John Carter',memo:'Retainer',credit:500,debit:0},{date:today(),client:'John Carter',memo:'Filing fee',credit:0,debit:75},{date:today(),client:'Emily Johnson',memo:'Retainer',credit:300,debit:0}]);}
+      if(!_get(K.invoices)){_set(K.invoices,[{no:'INV-1001',date:today(),client:'John Carter',memo:'HTA retainer',amount:250,paid:100},{no:'INV-1002',date:today(),client:'Emily Johnson',memo:'Filing fees',amount:150,paid:0}]);}
+      if(!_get(K.payments)){_set(K.payments,[{date:today(),client:'John Carter',memo:'Paid on INV-1001',amount:100}]);}
+    } seed();
+
+    const Clients={all(){return _get(K.clients,[])||[];}};
+    const Trust={all(){return _get(K.trust,[])||[];},add(r){const a=Trust.all();a.push(r);_set(K.trust,a);return r;},transferToOperating(client,amt,memo){Trust.add({date:today(),client,memo:memo||'Transfer to Operating',credit:0,debit:Number(amt||0)});}};
+    const Invoices={all(){return _get(K.invoices,[])||[];},setAll(a){_set(K.invoices,a);},applyToOldest(client,amount){let left=Number(amount||0);const arr=Invoices.all();for(const inv of arr.filter(i=>i.client===client)){const bal=Number(inv.amount)-Number(inv.paid||0);if(bal<=0)continue;const take=Math.min(bal,left);inv.paid=Number(inv.paid||0)+take;left-=take;if(left<=0)break;}Invoices.setAll(arr);}};
+    const Payments={all(){return _get(K.payments,[])||[];},add(p){const a=Payments.all();a.push(p);_set(K.payments,a);return p;}};
+
+    // Populate datalist
+    document.getElementById('clientsList').innerHTML = (Clients.all()).map(c=>`<option value="${(c.firstName||'')+' '+(c.lastName||'')}">`).join('');
+
+    // Render table
+    function render(){
+      const tbody=document.querySelector('#trustTable tbody');
+      const from=document.getElementById('fltFrom').value;
+      const to=document.getElementById('fltTo').value;
+      const term=(document.getElementById('fltClient').value||'').toLowerCase();
+      const data=Trust.all().filter(r=>(!from||r.date>=from)&&(!to||r.date<=to)&&(!term||(r.client||'').toLowerCase().includes(term)))
+        .sort((a,b)=>a.date.localeCompare(b.date)||a.client.localeCompare(b.client));
+      let bal=0;
+      tbody.innerHTML = data.map(r=>{
+        bal += (Number(r.credit||0)-Number(r.debit||0));
+        const isRetainer = Number(r.credit||0)>0 && (!r.memo || /retainer/i.test(r.memo));
+        return `<tr>
+          <td>${r.date}</td><td><a href="./trust-ledger.html?client=${encodeURIComponent(r.client)}">${r.client||''}</a></td><td>${r.memo||''}</td>
+          <td class="text-end">${r.credit?money(r.credit):''}</td><td class="text-end">${r.debit?money(r.debit):''}</td><td class="text-end">${money(bal)}</td>
+          <td class="text-end">
+            <div class="btn-group btn-group-sm">
+              <a class="btn btn-outline-secondary" href="./customer-ledger.html?client=${encodeURIComponent(r.client)}">Ledger</a>
+              <button class="btn btn-outline-secondary" data-action="transfer" data-client="${r.client}">Transfer</button>
+              ${isRetainer?`<button class="btn btn-outline-primary" data-action="apply" data-client="${r.client}" data-amount="${r.credit}">Apply to Invoice</button>`:''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="7" class="text-center text-secondary py-4">No entries yet.</td></tr>`;
+      document.getElementById('trustBal').textContent = money(bal);
+    }
+    ['fltClient','fltFrom','fltTo'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+
+    // Save new entry
+    document.getElementById('btnSave').addEventListener('click',()=>{
+      const r={date:fDate.value||today(), client:fClient.value.trim()||'Unknown', memo:fMemo.value.trim(), credit:Number(fCredit.value||0), debit:Number(fDebit.value||0)};
+      Trust.add(r); render(); new bootstrap.Toast(document.getElementById('toaster')).show();
+      bootstrap.Modal.getInstance(document.getElementById('entryModal'))?.hide();
+    });
+
+    // Row actions
+    document.querySelector('#trustTable').addEventListener('click',(e)=>{
+      const b=e.target.closest('button'); if(!b) return;
+      if(b.dataset.action==='apply'){
+        const client=b.dataset.client; const amt=Number(b.dataset.amount||0);
+        if(amt>0){ Payments.add({date:today(),client, memo:'Retainer applied', amount:amt}); Invoices.applyToOldest(client, amt); Trust.transferToOperating(client, amt, 'Retainer applied to invoice'); location.href='./customer-ledger.html?client='+encodeURIComponent(client); }
+      }else if(b.dataset.action==='transfer'){
+        const client=b.dataset.client; const amt=prompt('Transfer amount from Trust to Operating?','0'); const n=Number(amt||0); if(n>0){ Trust.transferToOperating(client,n,'Manual transfer'); render(); }
+      }
+    });
+
+    // Export
+    document.getElementById('btnExportCsv').addEventListener('click',()=>{
+      const rows=[['Date','Client','Memo','Receipt','Disbursement']].concat(Trust.all().map(r=>[r.date,r.client,r.memo||'',r.credit||0,r.debit||0]));
+      const csv=rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); const a=Object.assign(document.createElement('a'),{href:url,download:'trust-ledger.csv'}); document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Init
+    (function initFromQuery(){const q=new URL(location.href).searchParams.get('client'); if(q) document.getElementById('fltClient').value=q;})();
+    render();
+  </script>
+</body>
+</html>

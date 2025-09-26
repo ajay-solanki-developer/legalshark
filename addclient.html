@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lex Flow · Client Intake</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="nav-loader.js"></script>
+  <style>
+    :root {
+      --lf-bg: #0b0f19; --lf-surface: #111827; --lf-card: #0f172a; --lf-border: #1f2937;
+      --lf-accent: #0d47a1; --lf-primary: var(--lf-accent);
+    }
+    [data-bs-theme="dark"] { --bs-body-bg: var(--lf-bg); --bs-body-color:#e5e7eb; --bs-border-color:var(--lf-border); --bs-card-bg:var(--lf-card); --bs-card-border-color:var(--lf-border); --bs-tertiary-bg:var(--lf-surface); }
+
+    /* Site-wide gradient & header that react to primary */
+    body.lf-theme-gradient {
+      background:
+        radial-gradient(1200px 600px at -10% -10%, rgba(var(--bs-primary-rgb),0.18), transparent 60%),
+        linear-gradient(180deg, rgba(var(--bs-primary-rgb),0.08), transparent 300px),
+        var(--bs-body-bg);
+    }
+    .brand-header { background:linear-gradient(135deg, rgba(var(--bs-primary-rgb),0.22), rgba(var(--bs-primary-rgb),0.10) 60%, transparent 100%), var(--bs-body-bg); border-bottom:1px solid color-mix(in srgb, var(--lf-primary) 25%, var(--bs-border-color)); backdrop-filter:saturate(120%) blur(6px); }
+
+    .brand-badge { font-weight:700; letter-spacing:.5px; color:var(--lf-primary); }
+
+    .sidebar { width:280px; background:var(--bs-tertiary-bg); border-right:1px solid var(--bs-border-color); position:fixed; top:0; bottom:0; left:0; z-index:1030; overflow-y:auto; }
+    .content-wrap { margin-left:280px; }
+    @media (max-width:991.98px){ .sidebar{ left:-100%; transition:left .2s ease; } .sidebar.show{ left:0; } .content-wrap{ margin-left:0; } }
+    .sidebar a.active { background: rgba(var(--bs-primary-rgb), .18); color: var(--lf-primary) !important; border-radius:.6rem; }
+
+    .rounded-dna{ border-radius:1rem; }
+    .avatar{ width:32px; height:32px; border-radius:50%; display:inline-grid; place-items:center; font-size:.85rem; font-weight:600; background:#dbeafe; color:#1e40af; }
+  </style>
+</head>
+<body class="lf-theme-gradient">
+
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar p-3">
+    <div class="d-flex align-items-center mb-3">
+      <i class="bi bi-scales me-2 text-primary"></i>
+      <span class="brand-badge">LegalShark</span>
+      <span class="ms-2 text-secondary"></span>
+    </div>
+
+    <div class="mb-3">
+      <input type="search" class="form-control" placeholder="Search clients, tickets…"/>
+    </div>
+
+    <small class="text-uppercase text-secondary">Navigation</small>
+    <div id="mainNav"></div>
+
+    <hr/>
+    <small class="text-uppercase text-secondary">Quick Filters</small>
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      <span class="badge text-bg-secondary">New client</span>
+      <span class="badge text-bg-primary">Pending intake</span>
+    </div>
+
+    <hr/>
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scanModal"><i class="bi bi-upc-scan me-2"></i>Scan Licence</button>
+      <button class="btn btn-outline-secondary" id="toggleTheme"><i class="bi bi-moon-stars me-2"></i>Toggle Dark</button>
+    </div>
+  </nav>
+
+  <!-- Topbar -->
+  <header class="content-wrap brand-header sticky-top">
+    <div class="container-fluid py-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+          <span class="fw-semibold" id="pageTitle">Clients</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="input-group" style="max-width:360px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" placeholder="Quick search…"/>
+          </div>
+          <button class="btn position-relative">
+            <i class="bi bi-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+          </button>
+          <div class="dropdown">
+            <button class="btn dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+              <span class="avatar">JK</span><span class="d-none d-sm-inline">Jhankhana</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#">Profile</a></li>
+              <li><a class="dropdown-item" href="#">Preferences</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Sign out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content: Client Intake -->
+  <main class="content-wrap">
+    <div class="container-fluid py-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0">Client Intake</h5>
+        <div class="d-flex gap-2">
+          <a class="btn btn-outline-secondary" href="#"><i class="bi bi-clock-history"></i> View Client History</a>
+          <button class="btn btn-primary" id="btnScanLicence"><i class="bi bi-upc-scan"></i> Scan Licence</button>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Left: Form -->
+        <div class="col-12 col-xxl-9">
+          <div class="card rounded-dna">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <span class="fw-semibold">Client Info</span>
+              <span class="badge text-bg-secondary">New</span>
+            </div>
+            <div class="card-body">
+              <form id="clientForm" class="row g-3" novalidate>
+                <div class="col-md-4">
+                  <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                  <input name="lastName" class="form-control" required />
+                  <div class="invalid-feedback">Required.</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">First Name <span class="text-danger">*</span></label>
+                  <input name="firstName" class="form-control" required />
+                  <div class="invalid-feedback">Required.</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Email</label>
+                  <input name="email" type="email" class="form-control" placeholder="name@example.com" />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Address</label>
+                  <input name="address1" class="form-control" placeholder="Street, house/apartment" />
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">City</label>
+                  <select name="city" class="form-select">
+                    <option value="">Select…</option>
+                    <option>Toronto</option><option>Mississauga</option><option>Brampton</option><option>Ottawa</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label">Prov</label>
+                  <select name="prov" class="form-select">
+                    <option>ON</option><option>QC</option><option>BC</option><option>AB</option><option>MB</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label">Postal</label>
+                  <input name="postal" class="form-control" placeholder="A1A 1A1" />
+                </div>
+
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Home Phone</label>
+                  <input name="homePhone" type="tel" class="form-control" />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Bus. Phone</label>
+                  <div class="input-group">
+                    <input name="busPhone" type="tel" class="form-control" />
+                    <span class="input-group-text">Ext</span>
+                    <input name="ext" class="form-control" style="max-width:80px" />
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Cell Phone</label>
+                  <input name="cellPhone" type="tel" class="form-control" />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Fax</label>
+                  <input name="fax" type="tel" class="form-control" />
+                </div>
+
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Gender</label>
+                  <select name="gender" class="form-select">
+                    <option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Spoken Language</label>
+                  <select name="language" class="form-select">
+                    <option>ENGLISH</option><option>FRENCH</option><option>HINDI</option><option>GUJARATI</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Contact Method</label>
+                  <select name="contactMethod" class="form-select">
+                    <option>Mail</option><option>Email</option><option>Phone</option><option>SMS</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label">Driver's Licence #</label>
+                  <input name="dlno" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-8">
+                  <label class="form-label">Notes</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Additional information"></textarea>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">Source</label>
+                  <div class="input-group">
+                    <input name="source" class="form-control" placeholder="Referral / Campaign" />
+                    <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">Source Office</label>
+                  <select name="sourceOffice" class="form-select">
+                    <option>Legal Action</option><option>Downtown Branch</option><option>North Office</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Assigned Officer</label>
+                  <select name="owner" class="form-select">
+                    <option>Philip Alexiu</option><option>Ajay Solanki</option><option>Jhankhana Koshti</option>
+                  </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <div class="form-check">
+                    <input id="forSubIn" class="form-check-input" type="checkbox">
+                    <label for="forSubIn" class="form-check-label">For Sub In</label>
+                  </div>
+                </div>
+
+                <div class="col-12 d-flex gap-2 mt-2">
+                  <button class="btn btn-primary" id="btnSave"><i class="bi bi-check2"></i> Save Record</button>
+                  <button class="btn btn-outline-secondary" type="reset" id="btnUndo"><i class="bi bi-arrow-counterclockwise"></i> Undo Changes</button>
+                  <button class="btn btn-outline-primary" type="button" id="btnShowTickets"><i class="bi bi-ticket-detailed"></i> Show All Tickets</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Status / Tall Card -->
+        <div class="col-12 col-xxl-3">
+          <div class="card rounded-dna mb-3">
+            <div class="card-header fw-semibold">Queues</div>
+            <div class="card-body small">
+              <div class="d-flex justify-content-between mb-2"><span>Pending Faxes</span><span class="badge text-bg-secondary">0</span></div>
+              <div class="d-flex justify-content-between mb-2"><span>Remaining</span><span class="badge text-bg-primary">0</span></div>
+              <div class="d-flex justify-content-between"><span>Finished</span><span class="badge text-bg-success">0</span></div>
+              <div class="mt-3 d-grid">
+                <button class="btn btn-outline-secondary" id="btnOpenFax"><i class="bi bi-printer"></i> Open Fax Window</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card rounded-dna">
+            <div class="card-header fw-semibold">Financials</div>
+            <div class="card-body small">
+              <div class="row g-2">
+                <div class="col-6 d-flex justify-content-between"><span>Total Files</span><span class="fw-semibold">0</span></div>
+                <div class="col-6 d-flex justify-content-between"><span>Total Fees</span><span class="fw-semibold">0</span></div>
+                <div class="col-6 d-flex justify-content-between"><span>Total Tickets</span><span class="fw-semibold">0</span></div>
+                <div class="col-6 d-flex justify-content-between"><span>Payments</span><span class="fw-semibold">0</span></div>
+                <div class="col-6 d-flex justify-content-between text-danger"><span>BALANCE DUE</span><span class="fw-semibold">0</span></div>
+                <div class="col-6 d-flex justify-content-between text-danger"><span>COSTS DUE</span><span class="fw-semibold">0</span></div>
+              </div>
+              <hr/>
+              <div>Financial Report Completed: <span class="badge text-bg-danger" id="finStatus">NO</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Offcanvas: Tickets List -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="ticketsCanvas">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Tickets for Client</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="list-group small">
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="#">
+          <span>Speeding 20km/h over — Toronto</span>
+          <span class="badge text-bg-warning">Due 7d</span>
+        </a>
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="#">
+          <span>No seatbelt — Mississauga</span>
+          <span class="badge text-bg-danger">Overdue</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offcanvas: Fax Center -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="faxCanvas">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Fax Center</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="mb-3">
+        <label class="form-label">Upload faxed document</label>
+        <input type="file" class="form-control" />
+      </div>
+      <button class="btn btn-primary w-100">Record Fax</button>
+    </div>
+  </div>
+
+  <!-- Modal: Scan Licence -->
+  <div class="modal fade" id="scanModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Scan Licence</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Upload licence image (placeholder)</label>
+            <input id="licFile" type="file" class="form-control" accept="image/*" />
+          </div>
+          <p class="small text-secondary mb-0">Later we can integrate a camera/OCR pipeline to auto-fill fields.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" id="btnParseLicence"><i class="bi bi-magic"></i> Parse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="toastUpload" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">Action completed.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar toggle
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('show'));
+    // Dark toggle
+    document.getElementById('toggleTheme')?.addEventListener('click', () => {
+      const html = document.documentElement; html.setAttribute('data-bs-theme', html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    // === Theming (shared with dashboard) ===
+    const htmlEl = document.documentElement;
+    function hexToRgb(hex){ const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex); return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : null; }
+    const defaultCfg = { brand:'LegalShark', scheme:'auto', primary:'#0d47a1', radius:'1rem', btn:'pill', density:'cozy', menu:'filled' };
+    const loadCfg = () => ({ ...defaultCfg, ...(JSON.parse(localStorage.getItem('LegalSharkCfg')||'{}')) });
+    function applyCfg(cfg){
+      // Brand
+      const brandEl = document.querySelector('.brand-badge'); if(brandEl) brandEl.textContent = cfg.brand || 'LegalShark';
+      // Scheme
+      let scheme = cfg.scheme; if(scheme==='auto'){ scheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+      htmlEl.setAttribute('data-bs-theme', scheme);
+      // Primary
+      const rgb = hexToRgb(cfg.primary) || {r:13,g:71,b:161};
+      htmlEl.style.setProperty('--lf-primary', cfg.primary);
+      htmlEl.style.setProperty('--lf-accent', cfg.primary);
+      htmlEl.style.setProperty('--bs-primary', cfg.primary);
+      htmlEl.style.setProperty('--bs-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+      htmlEl.style.setProperty('--bs-link-color', cfg.primary);
+    }
+    applyCfg(loadCfg());
+
+    // === Client interactions ===
+    const ticketsCanvas = new bootstrap.Offcanvas('#ticketsCanvas');
+    const faxCanvas = new bootstrap.Offcanvas('#faxCanvas');
+    document.getElementById('btnShowTickets')?.addEventListener('click', () => ticketsCanvas.show());
+    document.getElementById('btnOpenFax')?.addEventListener('click', () => faxCanvas.show());
+    document.getElementById('btnScanLicence')?.addEventListener('click', () => new bootstrap.Modal('#scanModal').show());
+
+    document.getElementById('btnParseLicence')?.addEventListener('click', () => {
+      const f = document.getElementById('clientForm');
+      f.lastName.value = f.lastName.value || 'Smith';
+      f.firstName.value = f.firstName.value || 'James';
+      f.dlno.value = f.dlno.value || 'D1234-56789-0000';
+      bootstrap.Modal.getInstance(document.getElementById('scanModal')).hide();
+      const t = new bootstrap.Toast(document.getElementById('toastUpload')); t._element.querySelector('.toast-body').textContent = 'Licence parsed and fields filled.'; t.show();
+    });
+
+    document.getElementById('btnSave')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const form = document.getElementById('clientForm');
+      if(!form.checkValidity()){ form.classList.add('was-validated'); return; }
+      const fin = document.getElementById('finStatus'); fin.classList.replace('text-bg-danger','text-bg-success'); fin.textContent='YES';
+      const t = new bootstrap.Toast(document.getElementById('toastUpload')); t._element.querySelector('.toast-body').textContent = 'Client saved successfully.'; t.show();
+    });
+  </script>
+</body>
+</html>
