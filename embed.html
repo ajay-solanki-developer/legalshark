@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegalShark Partner Portal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 40px auto;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Left side: Information */
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 40px;
+            background-color: #1a2a3a;
+            color: #ffffff;
+        }
+
+        .info-section h1 {
+            color: #e0b044; /* Gold accent */
+            margin-top: 0;
+        }
+
+        .info-section h2 {
+            border-bottom: 2px solid #e0b044;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .contact-details {
+            margin-top: 30px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .contact-details li {
+            margin-bottom: 15px;
+        }
+
+        /* Right side: Form */
+        .form-section {
+            flex: 1;
+            min-width: 350px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                flex-direction: column;
+            }
+            .form-section {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="info-section">
+        <h1>LegalShark & Associates</h1>
+        <p>Providing premier legal counsel with a focus on integrity, excellence, and results.</p>
+        
+        <h2>Practice Areas</h2>
+        <ul>
+            <li>Corporate Law & Litigation</li>
+            <li>Intellectual Property</li>
+            <li>Family & Estate Planning</li>
+            <li>Personal Injury Claims</li>
+        </ul>
+
+        <h2>Why Choose Us?</h2>
+        <p>With over 20 years of experience, our team is dedicated to protecting your rights and navigating complex legal landscapes on your behalf.</p>
+
+        <ul class="contact-details">
+            <li><strong>📍 Address:</strong> 123 Justice Way, Suite 500</li>
+            <li><strong>📞 Phone:</strong> (555) 012-3456</li>
+            <li><strong>✉️ Email:</strong> intake@legalshark.xyz</li>
+        </ul>
+    </div>
+
+    <div class="form-section">
+        <iframe
+            src="https://legalshark.xyz/embed/intake?source=partnerA"
+            width="100%"
+            height="900"
+            style="border:none;"
+            loading="lazy">
+        </iframe>
+    </div>
+</div>
+
+</body>
+</html>
